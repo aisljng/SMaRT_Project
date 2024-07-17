@@ -1,8 +1,8 @@
-## SMaRT_Project
+# SMaRT_Project
 Ionic Average Project File: can be found here
 
-# DatabaseProject.py
+## DatabaseProject.py
 
-# DatabasePt2.py
+## DatabasePt2.py
 
-# DatabasePt3.py
+## DatabasePt3.py
