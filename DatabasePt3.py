@@ -4,10 +4,6 @@ write program that
 2. generates combinations from 17 RE's
 3. user inputs the known RE's 
 4. the program fills in the remaining size
-
-Js La Sc Y Yb
-Sc La Y Nd
-
 '''
 import pandas as pd
 import itertools
@@ -15,7 +11,7 @@ import itertools
 class Generate_RE:
 
     file = '/Users/aisling/downloads/SMaRT/Ionic_Average_Project.xlsx'
-    df1 = pd.read_excel(file, sheet_name='List of Elements', usecols=['Symbol'])
+    df1 = pd.read_excel(file, sheet_name='List of Elements', usecols=['Symbol', 'Ionic Radius (CN = 8, Å)'])
 
     def __init__(self, size, elements):
         self.size = int(size)
@@ -26,7 +22,7 @@ class Generate_RE:
         nonexistent = [elem for elem in self.elements if elem not in column_values]
 
         if nonexistent:
-            print(f"One or more of the elements do not exist: {nonexistent}")
+            print(f"The following elements do not exist: {nonexistent}")
             return False
         else:
             return True
@@ -65,32 +61,53 @@ class Generate_RE:
         unique_combinations = set(tuple(sorted(comb)) for comb in final_combinations) # avoids dupes
 
         unique_combinations = [list(comb) for comb in unique_combinations]
-        print(unique_combinations)
         return unique_combinations
+    
+   
+    def average_ionic_radius(self, combinations):
+        df = Generate_RE.df1
 
-    # def save_to_text_file(self, combinations, output_file):
-    #     with open(output_file, 'w') as file:
-    #         for comb in combinations:
-    #             file.write(', '.join(comb) + '\n')
-    #     print(f"Combinations saved to {output_file}")
+        data = []
+        for comb in combinations:
+            row = {}
+            total_radius = 0
+            valid_elements_count = 0
+            for idx, elem in enumerate(comb):
+                ionic_radius = df[df['Symbol'] == elem]['Ionic Radius (CN = 8, Å)']
+                if not ionic_radius.empty:
+                    radius = ionic_radius.values[0]
+                    row[f'Element {idx + 1}'] = elem
+                    total_radius += radius
+                    valid_elements_count += 1
+                else:
+                    row[f'Element {idx + 1}'] = elem
 
-    def save_to_excel(self, combinations, comb_file):
-            df_combinations = pd.DataFrame(combinations)
+            row['Combination'] = ', '.join(comb)
+            row['Average Ionic Radius'] = total_radius / valid_elements_count if valid_elements_count > 0 else None
+
+            data.append(row)
+
+        df_combinations = pd.DataFrame(data)
+        print(df_combinations)
+        return df_combinations
+
+    def save_to_excel(self, df_combinations, comb_file):
+        if isinstance(df_combinations, pd.DataFrame):
             df_combinations.to_excel(comb_file, index=False)
             print(f"Combinations saved to {comb_file}")
-
+        
 if __name__ == "__main__":
     size_input = input("Enter the size of elements: ")
     known_re = input("Enter the known RE elements: ")
 
     generator = Generate_RE(size_input, known_re)
     combos = generator.combinations()
+    ionic_radius_df = generator.average_ionic_radius(combos)
 
     if combos:
-        output_file = '/Users/aisling/downloads/Combinations_Output.xlsx'  # Changed extension to .xlsx
-        generator.save_to_excel(combos, output_file)
+        output_file = '/Users/aisling/downloads/Combinations_Output.xlsx'
+        generator.save_to_excel(ionic_radius_df, output_file)
     else:
         print("No valid combinations could be generated.")
 
-
-        
+ 
